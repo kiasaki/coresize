@@ -53,13 +53,7 @@ func (s *Server) handleImage(w http.ResponseWriter, r *http.Request, ps httprout
 			w.Header().Set("Content-Type", file.FileType())
 
 			x, _ := strconv.Atoi(r.URL.Query().Get("x"))
-			if x == 0 {
-				x = 300
-			}
 			y, _ := strconv.Atoi(r.URL.Query().Get("y"))
-			if y == 0 {
-				y = 170
-			}
 			align := r.URL.Query().Get("align")
 			if align == "" {
 				align = "cc"

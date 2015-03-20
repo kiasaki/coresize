@@ -5,12 +5,15 @@ import (
 	"errors"
 	"fmt"
 	"image"
+	"image/draw"
 	"image/jpeg"
 	"image/png"
 	"io"
 	"math"
 	"os"
 	"path"
+
+	"github.com/disintegration/gift"
 )
 
 const filechunk = 8192 // 8k
@@ -57,18 +60,58 @@ func (i ImageFile) Render(w io.Writer, x, y int, align string) error {
 	}
 	defer file.Close()
 
-	image, format, err := image.Decode(file)
+	img, format, err := image.Decode(file)
 	if err != nil {
 		return err
 	}
-	fmt.Println(format)
+
+	size := img.Bounds().Size()
+
+	// Default to current size if x and y are 0
+	if x == 0 && y == 0 {
+		x = size.X
+		y = size.Y
+	}
+	// Calculate same aspect ratio y
+	if y == 0 {
+		g := gift.New(gift.Resize(x, 0, gift.LanczosResampling))
+		y = g.Bounds(img.Bounds()).Size().Y
+	}
+	// Calculate same aspect ratio x
+	if x == 0 {
+		g := gift.New(gift.Resize(0, y, gift.LanczosResampling))
+		x = g.Bounds(img.Bounds()).Size().X
+	}
+
+	// This dance of ifs is all to keep aspect ration passing 0s to gift
+	var resizeFilter gift.Filter
+	if size.X > size.Y {
+		// If image is wider than high, resize width
+		resizeFilter = gift.Resize(x, 0, gift.LanczosResampling)
+	} else {
+		// Image is higher than wide, resize height
+		resizeFilter = gift.Resize(0, y, gift.LanczosResampling)
+	}
+
+	// Compute resized image keeping aspect ratio
+	g := gift.New(resizeFilter)
+	dst := image.NewRGBA(g.Bounds(img.Bounds()))
+	g.Draw(dst, img)
+
+	// Calculate starting point in destination image
+	startingPoint := image.Pt(0, 0)
+
+	// Compute resized image in right canvas
+	finalDst := image.NewRGBA(image.Rect(0, 0, x, y))
+	finalDstRect := dst.Bounds().Add(startingPoint)
+	draw.Draw(finalDst, finalDstRect, dst, startingPoint, draw.Src)
 
 	if format == "jpg" {
-		err = jpeg.Encode(w, image, &jpeg.Options{
+		err = jpeg.Encode(w, finalDst, &jpeg.Options{
 			Quality: 90,
 		})
 	} else if format == "png" {
-		err = png.Encode(w, image)
+		err = png.Encode(w, finalDst)
 	} else {
 		return errors.New("Unrecognized format: " + format)
 	}
