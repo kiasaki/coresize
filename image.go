@@ -83,28 +83,41 @@ func (i ImageFile) Render(w io.Writer, x, y int, align string) error {
 		x = g.Bounds(img.Bounds()).Size().X
 	}
 
-	// This dance of ifs is all to keep aspect ration passing 0s to gift
-	var resizeFilter gift.Filter
+	// Resize image keeping aspect ration, filling space we have
+	g := gift.New()
 	if size.X > size.Y {
-		// If image is wider than high, resize width
-		resizeFilter = gift.Resize(x, 0, gift.LanczosResampling)
+		// image is wider than it's high, resize width after
+		g.Add(gift.Resize(0, y, gift.LanczosResampling))
+		g.Add(gift.Resize(x, 0, gift.LanczosResampling))
 	} else {
-		// Image is higher than wide, resize height
-		resizeFilter = gift.Resize(0, y, gift.LanczosResampling)
+		g.Add(gift.Resize(x, 0, gift.LanczosResampling))
+		g.Add(gift.Resize(0, y, gift.LanczosResampling))
 	}
 
 	// Compute resized image keeping aspect ratio
-	g := gift.New(resizeFilter)
 	dst := image.NewRGBA(g.Bounds(img.Bounds()))
 	g.Draw(dst, img)
 
 	// Calculate starting point in destination image
-	startingPoint := image.Pt(0, 0)
+	var spx, spy int
+	if align[0] == 'c' {
+		spy = (y - dst.Bounds().Size().Y) / 2
+	} else if align[0] == 'b' {
+		spy = y - dst.Bounds().Size().Y
+	}
+	if align[1] == 'c' {
+		spx = (x - dst.Bounds().Size().X) / 2
+	} else if align[1] == 'r' {
+		spx = x - dst.Bounds().Size().X
+	}
+
+	startingPoint := image.Pt(spx, spy)
 
 	// Compute resized image in right canvas
 	finalDst := image.NewRGBA(image.Rect(0, 0, x, y))
-	finalDstRect := dst.Bounds().Add(startingPoint)
-	draw.Draw(finalDst, finalDstRect, dst, startingPoint, draw.Src)
+	sr := dst.Bounds()
+	finalDstRect := sr.Add(startingPoint)
+	draw.Draw(finalDst, finalDstRect, dst, sr.Min, draw.Src)
 
 	if format == "jpg" {
 		err = jpeg.Encode(w, finalDst, &jpeg.Options{
@@ -143,4 +156,12 @@ func (i *ImageFile) ComputeHash() error {
 
 	i.Hash = fmt.Sprintf("%x", hash.Sum(nil))[:8]
 	return nil
+}
+
+func intMax(a, b int) int {
+	if a > b {
+		return a
+	} else {
+		return b
+	}
 }
