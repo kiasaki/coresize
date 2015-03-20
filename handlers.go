@@ -37,3 +37,20 @@ func (s *Server) handleFilePaths(w http.ResponseWriter, r *http.Request, ps http
 		"files":  mappings,
 	})
 }
+
+func (s *Server) handleImage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	for _, file := range s.Files {
+		var fileName string
+		if s.Config.Hash {
+			fileName = file.NameWithHash()
+		} else {
+			fileName = file.Name()
+		}
+
+		// If it's a match with requested file render else keep searching
+		if fileName == ps.ByName("filename") {
+			http.ServeFile(w, r, file.Path)
+		}
+	}
+	http.Error(w, "File not found", http.StatusNotFound)
+}

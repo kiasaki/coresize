@@ -32,22 +32,18 @@ func (s *Server) Setup() {
 	router.PanicHandler = s.handlePanic
 
 	router.GET("/", s.handleIndex)
-	router.GET("/filepaths.json", s.handleFilePaths)
+	router.GET("/filenames.json", s.handleFilePaths)
+	router.GET("/i/*filename", s.handleImage)
 
 	s.Router = router
 
 	// Pull images files
 	if s.Config.PullFrom != "" {
-
+		// TODO Pull options
 	}
 
 	// Load images from folder
 	s.loadImages()
-
-	// Conpute image file hashes
-	if s.Config.Hash {
-
-	}
 }
 
 func (s *Server) Run() {
@@ -77,10 +73,14 @@ func (s *Server) loadImages() {
 			image := ImageFile{
 				Path: path.Join(s.Config.FolderName, fileInfo.Name()),
 			}
-			err = image.ComputeHash()
-			if err != nil {
-				log.Printf("Error calculating checksum for file %s (%s)", image.Name(), err.Error())
-				continue
+
+			// If configured compute checksum
+			if s.Config.Hash {
+				err = image.ComputeHash()
+				if err != nil {
+					log.Printf("Error calculating checksum for file %s (%s)", image.Name(), err.Error())
+					continue
+				}
 			}
 
 			s.Files = append(s.Files, image)
