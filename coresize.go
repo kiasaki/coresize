@@ -31,9 +31,9 @@ func (s *Server) Setup() {
 	router.NotFound = s.handleNotFound
 	router.PanicHandler = s.handlePanic
 
-	router.GET("/", s.handleIndex)
-	router.GET("/filenames.json", s.handleFilePaths)
-	router.GET("/i/*filename", s.handleImage)
+	router.GET("/", l(s.handleIndex))
+	router.GET("/filenames.json", l(s.handleFilePaths))
+	router.GET("/i/*filename", l(s.handleImage))
 
 	s.Router = router
 
@@ -74,6 +74,12 @@ func (s *Server) loadImages() {
 				Path: path.Join(s.Config.FolderName, fileInfo.Name()),
 			}
 
+			// Verify image is supported
+			if !image.Supported() {
+				log.Printf("Image format for file %s is not supported", image.Name())
+				continue
+			}
+
 			// If configured compute checksum
 			if s.Config.Hash {
 				err = image.ComputeHash()
@@ -88,4 +94,11 @@ func (s *Server) loadImages() {
 	}
 
 	log.Printf("%d files discovered\n", len(s.Files))
+}
+
+func l(handler httprouter.Handle) httprouter.Handle {
+	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		log.Printf("%s %s %s", r.RemoteAddr, r.Method, r.URL)
+		handler(w, r, ps)
+	}
 }
