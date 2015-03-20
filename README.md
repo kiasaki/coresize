@@ -81,3 +81,7 @@ Example response:
 ```
 Some nice binary :D
 ```
+
+## License
+
+MIT
