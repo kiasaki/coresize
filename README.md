@@ -7,7 +7,7 @@ or zip and serve resized and alligned versions of those images. Here's what it s
 
 - Use local folder of images
 - Pull down folder of images from S3
-- Pull down folder of images from a `.zip`
+- Pull down folder of images from a `.zip` (not yet implemented)
 - Serve over HTTP or HTTPS
 - Specify width and height of new image
 - Specify alignment of image in new canvas (t,b,l,r)
