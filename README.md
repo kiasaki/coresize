@@ -20,8 +20,8 @@ Example response:
 
 ```json
 {
-  hashes: true,
-  files: {
+  "hashes": true,
+  "files": {
     "agreda.png": "8e64ea6d-agreda.png",
     "aguia_branca.png": "9095612e-aguia_branca.png",
     "alsa.png": "9a8b98ad-alsa.png",
