@@ -7,5 +7,5 @@ import (
 func main() {
 	s := coresize.NewServer()
 	s.ParseFlags()
-	s.Run()
+	s.SetupAndRun()
 }
