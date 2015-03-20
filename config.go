@@ -11,6 +11,7 @@ type Config struct {
 	FolderName   string
 	PullFrom     string // s3 or http
 	PullFromUrl  string
+	ForcePull    bool
 	AwsClientKey string
 	AwsSecretKey string
 }
@@ -27,6 +28,7 @@ func (c *Config) ParseFlags() {
 		folderName   = flag.String("folder-name", "files/", "Local folder where images to serve are located and will be pulled to")
 		pullFrom     = flag.String("pull-from", "", "Either 's3' or 'http'")
 		pullFromUrl  = flag.String("pull-from-url", "", "S3 location or http location")
+		forcePull    = flag.Bool("force-pull", false, "Force fetching images from remote")
 		awsClientKey = flag.String("aws-client-key", "", "Only used when pull-from=s3")
 		awsSecretKey = flag.String("aws-secret-key", "", "")
 	)
@@ -39,6 +41,7 @@ func (c *Config) ParseFlags() {
 	c.FolderName = *folderName
 	c.PullFrom = *pullFrom
 	c.PullFromUrl = *pullFromUrl
+	c.ForcePull = *forcePull
 	c.AwsClientKey = *awsClientKey
 	c.AwsSecretKey = *awsSecretKey
 }

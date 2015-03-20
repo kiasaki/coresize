@@ -2,7 +2,7 @@
 package coresize
 
 func main() {
-	s := coresize.NewServer()
+	s := NewServer()
 	s.ParseFlags()
 	s.SetupAndRun()
 }
