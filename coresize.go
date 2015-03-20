@@ -4,15 +4,11 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"path"
 	"strconv"
 
 	"github.com/julienschmidt/httprouter"
 )
-
-type ImageFile struct {
-	Path string
-	Hash string
-}
 
 type Server struct {
 	Config Config
@@ -36,6 +32,7 @@ func (s *Server) Setup() {
 	router.PanicHandler = s.handlePanic
 
 	router.GET("/", s.handleIndex)
+	router.GET("/filepaths.json", s.handleFilePaths)
 
 	s.Router = router
 
@@ -73,7 +70,20 @@ func (s *Server) loadImages() {
 
 	for _, fileInfo := range fileInfos {
 		if !fileInfo.IsDir() {
-			log.Printf("Discovered: %s\n", fileInfo.Name())
+			if s.Config.Verbose {
+				log.Printf("Discovered: %s\n", fileInfo.Name())
+			}
+
+			image := ImageFile{
+				Path: path.Join(s.Config.FolderName, fileInfo.Name()),
+			}
+			err = image.ComputeHash()
+			if err != nil {
+				log.Printf("Error calculating checksum for file %s (%s)", image.Name(), err.Error())
+				continue
+			}
+
+			s.Files = append(s.Files, image)
 		}
 	}
 

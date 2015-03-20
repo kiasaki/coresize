@@ -6,6 +6,7 @@ import (
 
 type Config struct {
 	Port         int
+	Verbose      bool
 	Hash         bool
 	FolderName   string
 	PullFrom     string // s3 or http
@@ -21,7 +22,8 @@ func NewConfig() Config {
 func (c *Config) ParseFlags() {
 	var (
 		port         = flag.Int("port", 8080, "Port to listen on")
-		hash         = flag.Bool("hash", true, "Answer to hashed filenames")
+		verbose      = flag.Bool("v", false, "Be more verbose")
+		hash         = flag.Bool("hash", false, "Answer to hashed filenames")
 		folderName   = flag.String("folder-name", "files/", "Local folder where images to serve are located and will be pulled to")
 		pullFrom     = flag.String("pull-from", "", "Either 's3' or 'http'")
 		pullFromUrl  = flag.String("pull-from-url", "", "S3 location or http location")
@@ -32,6 +34,7 @@ func (c *Config) ParseFlags() {
 	flag.Parse()
 
 	c.Port = *port
+	c.Verbose = *verbose
 	c.Hash = *hash
 	c.FolderName = *folderName
 	c.PullFrom = *pullFrom
