@@ -14,6 +14,21 @@ or zip and serve resized and alligned versions of those images. Here's what it s
 - Make the server respond to hashes based on original content instead of filenames
 - Expose json hashes map at `/filenames.json`
 
+## CLI usage
+
+```
+Usage of coresize:
+  -aws-client-key="": Only used when pull-from=s3
+  -aws-secret-key="":
+  -folder-name="files/": Local folder where images to serve are located and will be pulled to
+  -force-pull=false: Force fetching images from remote
+  -hash=false: Answer to hashed filenames
+  -port=8080: Port to listen on
+  -pull-from="": Either 's3' or 'http'
+  -pull-from-url="": S3 location or http location
+  -v=false: Be more verbose
+```
+
 ## GET `/filenames.json`
 
 Example response:
