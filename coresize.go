@@ -38,9 +38,7 @@ func (s *Server) Setup() {
 	s.Router = router
 
 	// Pull images files
-	if s.Config.PullFrom != "" {
-		// TODO Pull options
-	}
+	pullImages(s.Config)
 
 	// Load images from folder
 	s.loadImages()
