@@ -54,8 +54,8 @@ Parameters:
 
 Query string parameters:
 
-- `x` (int) Width of rendered image
-- `y` (int) Height of redered image
+- `width` (int) Width of rendered image
+- `height` (int) Height of redered image
 - `align` (enum{tl,tc,tr,cl,cc,cr,bl,bc,br}) How to align image
   - First character is `x` axis alignment {top, center, bottom}
   - Second character is `y` axis alignment {left, center, right}
@@ -73,7 +73,7 @@ Query string parameters:
 Example request:
 
 ```
-/i/1c2cc361-brewster.png?x=600&y=300&align=tc
+/i/1c2cc361-brewster.png?width=600&height=300&align=tc
 ```
 
 Example response:
