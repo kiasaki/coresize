@@ -3,7 +3,7 @@
 _core, because it's simple, resize, because it serves resized versions of your images_
 
 **coresize** aims to be a small server that can load images from local disk, S3,
-or zip and serve resized and alligned versions of those images. Here's what it supports:
+or zip and serve resized and aligned versions of those images. Here's what it supports:
 
 - Use local folder of images
 - Pull down folder of images from S3
@@ -55,7 +55,7 @@ Parameters:
 Query string parameters:
 
 - `x` (int) Width of rendered image
-- `y` (int) Height of redered image
+- `y` (int) Height of rendered image
 - `align` (enum{tl,tc,tr,cl,cc,cr,bl,bc,br}) How to align image
   - First character is `x` axis alignment {top, center, bottom}
   - Second character is `y` axis alignment {left, center, right}
