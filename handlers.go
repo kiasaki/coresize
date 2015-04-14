@@ -1,6 +1,7 @@
 package coresize
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
@@ -17,54 +18,36 @@ func (s *Server) handleNotFound(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	rest.SetOKResponse(w, map[string]string{
-		"app": "coresize",
-	})
-}
-
-func (s *Server) handleFilePaths(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	mappings := map[string]string{}
-
-	for _, file := range s.Files {
-		if s.Config.Hash {
-			mappings[file.Name()] = file.NameWithHash()
-		} else {
-			mappings[file.Name()] = file.Name()
-		}
-	}
-
+	// return supported endpoints with url templates
 	rest.SetOKResponse(w, map[string]interface{}{
-		"hashes": s.Config.Hash,
-		"files":  mappings,
+		"v1": map[string]string{
+			"root_url":  "/",
+			"image_url": "/v1/image/{file_name}?hash={file_hash}&height={height}&width={width}&allign={allignment}",
+		},
 	})
 }
 
 func (s *Server) handleImage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	for _, file := range s.Files {
-		var fileName string
-		if s.Config.Hash {
-			fileName = file.NameWithHash()
-		} else {
-			fileName = file.Name()
+	requestFilename := ps.ByName("filename")[1:]
+
+	if cacheFile, ok := s.Cache.Get(requestFilename); ok {
+		// extract url params
+		height, _ := strconv.Atoi(r.URL.Query().Get("height"))
+		width, _ := strconv.Atoi(r.URL.Query().Get("width"))
+		align := r.URL.Query().Get("align")
+		if align == "" {
+			align = "cc"
 		}
 
-		// If it's a match with requested file render else keep searching
-		if fileName == ps.ByName("filename")[1:] {
-			w.Header().Set("Content-Type", file.FileType())
-
-			x, _ := strconv.Atoi(r.URL.Query().Get("x"))
-			y, _ := strconv.Atoi(r.URL.Query().Get("y"))
-			align := r.URL.Query().Get("align")
-			if align == "" {
-				align = "cc"
-			}
-
-			err := file.Render(w, x, y, align)
-			if err != nil {
-				rest.SetInternalServerErrorResponse(w, err)
-			}
+		// fetch and render, or, read from disk
+		err := cacheFile.Render(w, width, height, align)
+		if err != nil {
+			log.Printf("Error rendering %s: %s\n", requestFilename, err.Error())
+			rest.SetInternalServerErrorResponse(w, err)
 			return
 		}
+		w.Header().Set("Content-Type", cacheFile.FileType())
+		return
 	}
 	http.Error(w, "File not found", http.StatusNotFound)
 }

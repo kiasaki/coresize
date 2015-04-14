@@ -1,10 +1,9 @@
 package coresize
 
 import (
-	"io/ioutil"
 	"log"
 	"net/http"
-	"path"
+	"os"
 	"strconv"
 
 	"github.com/julienschmidt/httprouter"
@@ -13,7 +12,7 @@ import (
 type Server struct {
 	Config Config
 	Router *httprouter.Router
-	Files  []ImageFile
+	Cache  *Cache
 }
 
 func NewServer() *Server {
@@ -32,19 +31,26 @@ func (s *Server) Setup() {
 	router.PanicHandler = s.handlePanic
 
 	router.GET("/", l(s.handleIndex))
-	router.GET("/filenames.json", l(s.handleFilePaths))
-	router.GET("/i/*filename", l(s.handleImage))
+	router.GET("/v1/i/*filename", l(s.handleImage))
 
 	s.Router = router
 
-	// Pull images files
-	pullImages(s.Config)
+	// Local cache folder
+	if err := ensureFolder(s.Config.CacheFolder); err != nil {
+		log.Printf("Error creating folder: %s\n", err.Error())
+		os.Exit(1)
+	}
 
-	// Load images from folder
-	s.loadImages()
+	// File cache
+	s.Cache = NewCache(s.Config)
+	if err := s.Cache.Setup(); err != nil {
+		log.Printf("Error setting up cache: %s\n", err.Error())
+		os.Exit(1)
+	}
 }
 
 func (s *Server) Run() {
+
 	log.Printf("Listening on port %d\n", s.Config.Port)
 	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(s.Config.Port), s.Router))
 }
@@ -52,46 +58,6 @@ func (s *Server) Run() {
 func (s *Server) SetupAndRun() {
 	s.Setup()
 	s.Run()
-}
-
-func (s *Server) loadImages() {
-	fileInfos, err := ioutil.ReadDir(s.Config.FolderName)
-	if err != nil {
-		log.Println(err.Error())
-		log.Println("0 files discovered")
-		return
-	}
-
-	for _, fileInfo := range fileInfos {
-		if !fileInfo.IsDir() {
-			if s.Config.Verbose {
-				log.Printf("Discovered: %s\n", fileInfo.Name())
-			}
-
-			image := ImageFile{
-				Path: path.Join(s.Config.FolderName, fileInfo.Name()),
-			}
-
-			// Verify image is supported
-			if !image.Supported() {
-				log.Printf("Image format for file %s is not supported", image.Name())
-				continue
-			}
-
-			// If configured compute checksum
-			if s.Config.Hash {
-				err = image.ComputeHash()
-				if err != nil {
-					log.Printf("Error calculating checksum for file %s (%s)", image.Name(), err.Error())
-					continue
-				}
-			}
-
-			s.Files = append(s.Files, image)
-		}
-	}
-
-	log.Printf("%d files discovered\n", len(s.Files))
 }
 
 func l(handler httprouter.Handle) httprouter.Handle {

@@ -24,6 +24,10 @@ type ImageFile struct {
 	Hash string
 }
 
+func NewImageFile(filename string) ImageFile {
+	return ImageFile{Path: filename}
+}
+
 func (i ImageFile) Name() string {
 	return path.Base(i.Path)
 }

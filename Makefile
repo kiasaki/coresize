@@ -1,2 +1,2 @@
 build:
-	go build -o coresize cmd/main.go
+	go build -o coresize -tags heroku *.go
