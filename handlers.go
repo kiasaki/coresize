@@ -22,7 +22,7 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request, ps httprout
 	rest.SetOKResponse(w, map[string]interface{}{
 		"v1": map[string]string{
 			"root_url":  "/",
-			"image_url": "/v1/image/{file_name}?hash={file_hash}&height={height}&width={width}&allign={allignment}",
+			"image_url": "/v1/i/{/file_name}{?file_hash,height,width,allign}",
 		},
 	})
 }
