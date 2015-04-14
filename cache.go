@@ -3,7 +3,6 @@ package coresize
 import (
 	"io"
 	"io/ioutil"
-	"log"
 	"os"
 	"path"
 )
@@ -37,11 +36,20 @@ func (cf *CacheFile) Render(w io.Writer, width, height int, align string) error 
 // S3 and saves it to local disk
 func (cf *CacheFile) EnsureCached() error {
 	if _, err := os.Stat(cf.LocalPath); os.IsNotExist(err) {
+		// fetch file from S3
 		bucket := s3BucketFromConfig(cf.Cache.Config)
 		fileBytes, err := bucket.Get(cf.RemotePath)
 		if err != nil {
 			return err
 		}
+
+		// make a odirectory for it
+		err = ensureFolder(path.Dir(cf.LocalPath))
+		if err != nil {
+			return err
+		}
+
+		// write to disk
 		err = ioutil.WriteFile(cf.LocalPath, fileBytes, 0755)
 		return err
 	} else if err != nil {
@@ -81,7 +89,6 @@ func (c *Cache) Setup() error {
 
 	// append all discovered files
 	for _, object := range response.Contents {
-		log.Println(object.Key)
 		c.Files[object.Key] = c.NewCacheFile(object.Key)
 	}
 

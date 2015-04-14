@@ -21,6 +21,13 @@ func NewServer() *Server {
 
 func (s *Server) ParseFlags() {
 	s.Config.ParseFlags()
+
+	if s.Config.AwsSecretKey == "" || s.Config.AwsClientKey == "" {
+		log.Fatal("AWS client and secret key are required configuration")
+	}
+	if s.Config.Bucket == "" {
+		log.Fatal("AWS S3 Bucket name is a required configuration")
+	}
 }
 
 func (s *Server) Setup() {
@@ -35,12 +42,6 @@ func (s *Server) Setup() {
 
 	s.Router = router
 
-	// Local cache folder
-	if err := ensureFolder(s.Config.CacheFolder); err != nil {
-		log.Printf("Error creating folder: %s\n", err.Error())
-		os.Exit(1)
-	}
-
 	// File cache
 	s.Cache = NewCache(s.Config)
 	if err := s.Cache.Setup(); err != nil {
@@ -50,7 +51,6 @@ func (s *Server) Setup() {
 }
 
 func (s *Server) Run() {
-
 	log.Printf("Listening on port %d\n", s.Config.Port)
 	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(s.Config.Port), s.Router))
 }
