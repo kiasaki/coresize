@@ -7,13 +7,9 @@ import (
 type Config struct {
 	Port         int
 	Verbose      bool
-	Hash         bool
-	FolderName   string
-	PullFrom     string // s3 or http
-	PullFromUrl  string
-	ForcePull    bool
 	AwsClientKey string
 	AwsSecretKey string
+	Bucket       string
 }
 
 func NewConfig() Config {
@@ -24,24 +20,16 @@ func (c *Config) ParseFlags() {
 	var (
 		port         = flag.Int("port", 8080, "Port to listen on")
 		verbose      = flag.Bool("v", false, "Be more verbose")
-		hash         = flag.Bool("hash", false, "Answer to hashed filenames")
-		folderName   = flag.String("folder-name", "files/", "Local folder where images to serve are located and will be pulled to")
-		pullFrom     = flag.String("pull-from", "", "Either 's3' or 'http'")
-		pullFromUrl  = flag.String("pull-from-url", "", "S3 location or http location")
-		forcePull    = flag.Bool("force-pull", false, "Force fetching images from remote")
-		awsClientKey = flag.String("aws-client-key", "", "Only used when pull-from=s3")
+		awsClientKey = flag.String("aws-client-key", "", "")
 		awsSecretKey = flag.String("aws-secret-key", "", "")
+		bucket       = flag.String("bucket", "", "S3 bucket containing images")
 	)
 
 	flag.Parse()
 
 	c.Port = *port
 	c.Verbose = *verbose
-	c.Hash = *hash
-	c.FolderName = *folderName
-	c.PullFrom = *pullFrom
-	c.PullFromUrl = *pullFromUrl
-	c.ForcePull = *forcePull
 	c.AwsClientKey = *awsClientKey
 	c.AwsSecretKey = *awsSecretKey
+	c.Bucket = *bucket
 }
