@@ -4,12 +4,10 @@ _core, because it's simple, resize, because it serves resized versions of your i
 
 **coresize** aims to be a small server that can load images from local disk or S3 and serve resized and aligned versions of those images "on the fly". Here's what it supports:
 
-- Serve images from a local folder
 - Serve images directly from S3
+- Cache images locally to skip the S3 roundtrip next request
 - Specify width and height of new image
 - Specify alignment of image in new canvas (top, center, bottom, left, center, right)
-- Make the server respond to hashes based on original content (checksum) instead of original filenames
-- Expose known hashes as a json map at `/filenames.json`
 
 ## CLI usage
 
@@ -22,24 +20,9 @@ Usage of coresize:
   -v=false: Be more verbose
 ```
 
-## GET `/filenames.json`
+## GET `/v1/i/:filename`
 
-Example response:
-
-```json
-{
-  "hashes": true,
-  "files": {
-    "agreda.png": "8e64ea6d-agreda.png",
-    "aguia_branca.png": "9095612e-aguia_branca.png",
-    "alsa.png": "9a8b98ad-alsa.png",
-  }
-}
-```
-
-## GET `/i/:filename`
-
-Serves a file resized on-the-fly to the right format. The filename must include the hash if **coresize** was started with the `-hash` flag.
+Serves a file resized on-the-fly to the right format.
 
 Parameters:
 
@@ -66,7 +49,7 @@ Query string parameters:
 Example request:
 
 ```
-/i/1c2cc361-brewster.png?x=600&y=300&align=tc
+/v1/i/brewster.png?hash=1c2cc361&width=600&height=300&align=tc
 ```
 
 Example response:
