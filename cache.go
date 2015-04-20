@@ -1,7 +1,6 @@
 package coresize
 
 import (
-	"io"
 	"io/ioutil"
 	"os"
 	"path"
@@ -23,13 +22,22 @@ func (c *Cache) NewCacheFile(remotePath string) *CacheFile {
 	}
 }
 
-func (cf *CacheFile) Render(w io.Writer, width, height int, align string) error {
+func (cf *CacheFile) Image() (ImageFile, error) {
+	// Ensure we have the image on local disk
 	if !cf.Cached {
 		if err := cf.EnsureCached(); err != nil {
-			return err
+			return ImageFile{}, err
 		}
 	}
-	return NewImageFile(cf.LocalPath).Render(w, width, height, align)
+
+	// Compute image hash
+	image := NewImageFile(cf.LocalPath)
+	if err := image.ComputeHash(); err != nil {
+		return ImageFile{}, err
+	}
+
+	// Return hash and rendered image
+	return image, nil
 }
 
 // EnsureCached checks for file on disk, is it isn't there it fetches it from

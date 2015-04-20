@@ -1,9 +1,11 @@
 package coresize
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/kiasaki/batbelt/rest"
@@ -40,13 +42,16 @@ func (s *Server) handleImage(w http.ResponseWriter, r *http.Request, ps httprout
 		}
 
 		// fetch and render, or, read from disk
-		err := cacheFile.Render(w, width, height, align)
+		image, err := cacheFile.Image()
+		w.Header().Set("Content-Type", cacheFile.FileType())
+		w.Header().Set("Expires", time.Now().AddDate(1, 0, 0).Format(http.TimeFormat))
+		w.Header().Set("ETag", fmt.Sprintf("%s,w=%d,h=%d,a=%s", image.Hash, width, height, align))
+		err = image.Render(w, width, height, align)
 		if err != nil {
 			log.Printf("Error rendering %s: %s\n", requestFilename, err.Error())
 			rest.SetInternalServerErrorResponse(w, err)
 			return
 		}
-		w.Header().Set("Content-Type", cacheFile.FileType())
 		return
 	}
 	http.Error(w, "File not found", http.StatusNotFound)
