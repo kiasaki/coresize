@@ -123,7 +123,7 @@ func (i ImageFile) Render(w io.Writer, x, y int, align string) error {
 	finalDstRect := sr.Add(startingPoint)
 	draw.Draw(finalDst, finalDstRect, dst, sr.Min, draw.Src)
 
-	if format == "jpg" {
+	if format == "jpg" || format == "jpeg" {
 		err = jpeg.Encode(w, finalDst, &jpeg.Options{
 			Quality: 90,
 		})
