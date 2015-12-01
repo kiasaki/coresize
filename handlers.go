@@ -56,3 +56,14 @@ func (s *Server) handleImage(w http.ResponseWriter, r *http.Request, ps httprout
 	}
 	http.Error(w, "File not found", http.StatusNotFound)
 }
+
+func (s *Server) handleReload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	cache := NewCache(s.Config)
+	if err := cache.Setup(); err != nil {
+		log.Printf("Error setting up cache: %s\n", err.Error())
+		rest.SetInternalServerErrorResponse(w, err)
+		return
+	}
+	s.Cache = cache
+	rest.SetNoContentResponse(w)
+}

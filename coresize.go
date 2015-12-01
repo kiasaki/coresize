@@ -39,6 +39,7 @@ func (s *Server) Setup() {
 
 	router.GET("/", l(s.handleIndex))
 	router.GET("/v1/i/*filename", l(s.handleImage))
+	router.GET("/v1/reload", l(s.handleReload))
 
 	s.Router = router
 
